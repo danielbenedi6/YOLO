@@ -18,7 +18,6 @@ def ConvertAnnotations(h, w, x1, x2, y1, y2) -> np.ndarray:
     :param annotation: Entries from .xml files represented as NumPy arrays.
     :return: array of object localization in YOLO annotations.
     """
-    #print(h, w, x1, x2, y1, y2)
 
     x_yolo = (x2 + x1) / (2 * w)
     y_yolo = (y2 + y1) // (2 * h)
@@ -46,8 +45,6 @@ def XML2NumPy(xml):
     Nobj = len(bounding_boxes)
 
     obj_loc_voc = np.zeros((Nobj, 4))
-
-
 
     from xml.etree import ElementTree as ET
 
@@ -85,13 +82,20 @@ def ReadDirectory():
     :return bb_data: Bounding boxes in NumPy matrices stored in a list.
         The number of element corresponds to image in row of image_data
     """
+    import os.path
+
+    if os.path.exists('presaved/image_data.npy') and os.path.exists('presaved/bb_data.npy'):
+
+        image_data = np.load('presaved/image_data.npy', allow_pickle = True )
+        bb_data = np.load('presaved/bb_data.npy', allow_pickle = True)
+
+        return image_data, bb_data
 
     Nimages = len(os.listdir('Annotations'))
 
     image_data = np.zeros((Nimages, 448,448,3))
 
     bb_data = []
-
 
     for ind, filename in tqdm(enumerate(os.listdir('Annotations')), total = Nimages):
 
@@ -106,23 +110,19 @@ def ReadDirectory():
         image_data[ind] = img
         bb_data.append(bounding_boxes)
 
+    print(type(image_data))
+    print(type(bb_data))
+
+    np.save('presaved/image_data.npy', image_data)
+    np.save('presaved/bb_data.npy', bb_data)
+
     return image_data, bb_data
 
 def main():
-    ReadDirectory()
 
+    image_data, bb_data = ReadDirectory()
+    image_data /= 255
 
 if __name__ == '__main__':
     main()
 
-
-""" Notes.
-for box in bounding_boxes:
-    box_nodes = box.childNodes
-
-    for box_node in box_nodes:
-        node_elements = box_node.childNodes
-
-        for box_elem in node_elements:
-            print(box_elem.data)
-"""
